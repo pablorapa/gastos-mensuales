@@ -94,14 +94,6 @@ export function FormularioGastoSimple({ onSuccess }: FormularioGastoSimpleProps)
         ]}
       />
 
-      <Input
-        label="Fecha"
-        type="date"
-        value={fecha}
-        onChange={e => setFecha(e.target.value)}
-        required
-      />
-
       {error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
           {error}

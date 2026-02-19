@@ -63,7 +63,6 @@ export default function DashboardPage() {
         setCuotasMensuales(gastosData.cuotasMensuales || []);
       }
     } catch (error) {
-      console.error('Error al cargar datos:', error);
     } finally {
       setIsLoading(false);
     }
@@ -109,7 +108,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Gastos Compartidos</h1>
-                <p className="text-sm text-gray-600">{session.user?.email}</p>
+                <p className="text-sm text-gray-600">{session?.user?.email}</p>
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={() => signOut()}>
@@ -124,32 +123,40 @@ export default function DashboardPage() {
         {vistaActual === 'dashboard' ? (
           <div className="space-y-8">
             {/* Selector de mes */}
-            <div className="flex items-center justify-between bg-white rounded-lg shadow-md p-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => cambiarMes('anterior')}
-              >
-                ← Anterior
-              </Button>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">
-                  {formatDate(mesActual, 'month')}
-                </p>
-                <input
-                  type="month"
-                  value={mesActual}
-                  onChange={e => setMesActual(e.target.value)}
-                  className="mt-2 px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
-                />
+            <div className="bg-white rounded-lg shadow-md p-4">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="w-full md:w-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => cambiarMes('anterior')}
+                    className="w-full md:w-auto"
+                  >
+                    ← Anterior
+                  </Button>
+                </div>
+                <div className="text-center">
+                  <p className="text-xl md:text-2xl font-bold text-gray-900">
+                    {formatDate(mesActual, 'month')}
+                  </p>
+                  <input
+                    type="month"
+                    value={mesActual}
+                    onChange={e => setMesActual(e.target.value)}
+                    className="mt-2 px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+                <div className="w-full md:w-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => cambiarMes('siguiente')}
+                    className="w-full md:w-auto"
+                  >
+                    Siguiente →
+                  </Button>
+                </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => cambiarMes('siguiente')}
-              >
-                Siguiente →
-              </Button>
             </div>
 
             {/* Botones de acción */}
@@ -162,7 +169,7 @@ export default function DashboardPage() {
                 + Agregar Gasto Simple
               </Button>
               <Button
-                variant="secondary"
+                variant="outline"
                 onClick={() => setVistaActual('gasto-cuotas')}
                 className="h-16"
               >

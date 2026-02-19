@@ -39,7 +39,7 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
           <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
         <p className="font-medium">No hay gastos registrados este mes</p>
-        <p className="text-sm mt-1">Agrega un gasto para comenzar</p>
+        <p className="text-sm mt-1">Agregá un gasto para comenzar</p>
       </div>
     );
   }
@@ -56,24 +56,24 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
             {gastosSimples.map(gasto => (
               <div
                 key={gasto.id}
-                className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow gap-2 sm:gap-4"
               >
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900">{gasto.concepto}</p>
-                  <div className="flex items-center gap-4 mt-1">
-                    <span className={`text-xs px-2 py-1 rounded-full ${
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 truncate">{gasto.concepto}</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
                       gasto.persona === 'Manuel' 
                         ? 'bg-blue-100 text-blue-800' 
                         : 'bg-green-100 text-green-800'
                     }`}>
                       {gasto.persona}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 flex-shrink-0">
                       {formatDate(gasto.fecha)}
                     </span>
                   </div>
                 </div>
-                <p className="text-lg font-bold text-gray-900">
+                <p className="text-base sm:text-lg font-bold text-gray-900 flex-shrink-0">
                   {formatCurrency(gasto.monto)}
                 </p>
               </div>
@@ -92,30 +92,30 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
             {cuotasMensuales.map(cuota => (
               <div
                 key={cuota.id}
-                className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow gap-3 sm:gap-4"
               >
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900">{cuota.concepto}</p>
-                  <div className="flex items-center gap-4 mt-1">
-                    <span className={`text-xs px-2 py-1 rounded-full ${
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 truncate">{cuota.concepto}</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
                       cuota.persona === 'Manuel' 
                         ? 'bg-blue-100 text-blue-800' 
                         : 'bg-green-100 text-green-800'
                     }`}>
                       {cuota.persona}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 flex-shrink-0">
                       Cuota {cuota.numeroCuota}
                     </span>
                     {cuota.reintegroAplicado > 0 && (
-                      <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800">
+                      <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 flex-shrink-0">
                         Reintegro: {formatCurrency(cuota.reintegroAplicado)}
                       </span>
                     )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-gray-900">
+                <div className="text-right flex-shrink-0">
+                  <p className="text-base sm:text-lg font-bold text-gray-900">
                     {formatCurrency(cuota.montoCuota)}
                   </p>
                   {cuota.montoCuota !== cuota.montoOriginal && (

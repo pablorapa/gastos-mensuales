@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { obtenerGastosSimples, obtenerCuotasMensuales } from '@/lib/googleSheets';
 
 /**
@@ -38,9 +38,8 @@ export async function GET(request: Request) {
       cuotasMensuales,
     });
   } catch (error) {
-    console.error('Error al obtener gastos:', error);
     return NextResponse.json(
-      { error: 'Error al obtener gastos' },
+      { error: 'Error al obtener gastos', details: String(error) },
       { status: 500 }
     );
   }

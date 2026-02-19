@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { initializeSpreadsheet } from '@/lib/googleSheets';
 
 /**
@@ -24,7 +24,6 @@ export async function POST(request: Request) {
       message: 'Spreadsheet inicializado correctamente'
     });
   } catch (error) {
-    console.error('Error al inicializar spreadsheet:', error);
     return NextResponse.json(
       { error: 'Error al inicializar spreadsheet' },
       { status: 500 }

@@ -149,16 +149,19 @@ export async function agregarGastoSimple(gasto: GastoSimple): Promise<string> {
     createdAt,
   ];
 
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${SHEET_NAMES.GASTOS_SIMPLES}!A:F`,
-    valueInputOption: 'RAW',
-    requestBody: {
-      values: [row],
-    },
-  });
-
-  return id;
+  try {
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${SHEET_NAMES.GASTOS_SIMPLES}!A:F`,
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [row],
+      },
+    });
+    return id;
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
@@ -291,26 +294,34 @@ async function generarCuotasMensuales(gastoId: string, gasto: GastoCuotas) {
 export async function obtenerGastosSimples(mes?: string): Promise<GastoSimple[]> {
   const sheets = getGoogleSheetsClient();
 
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: `${SHEET_NAMES.GASTOS_SIMPLES}!A2:F`,
-  });
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${SHEET_NAMES.GASTOS_SIMPLES}!A2:F`,
+    });
 
-  const rows = response.data.values || [];
-  const gastos = rows.map((row: any[]) => ({
-    id: row[0],
-    fecha: row[1],
-    concepto: row[2],
-    monto: parseFloat(row[3]),
-    persona: row[4] as 'Manuel' | 'Pablo',
-    createdAt: row[5],
-  }));
+    const rows = response.data.values || [];
 
-  if (mes) {
-    return gastos.filter(g => g.fecha.startsWith(mes));
+    const gastos = rows
+      .filter((row: any[]) => row && row.length >= 5 && row[0] && row[3]) // Filtrar filas incompletas
+      .map((row: any[]) => ({
+        id: row[0],
+        fecha: row[1],
+        concepto: row[2],
+        monto: parseFloat(row[3]) || 0,
+        persona: row[4] as 'Manuel' | 'Pablo',
+        createdAt: row[5] || '',
+      }));
+
+    if (mes) {
+      const filtered = gastos.filter((g: GastoSimple) => g.fecha.startsWith(mes));
+      return filtered;
+    }
+
+    return gastos;
+  } catch (error) {
+    throw error;
   }
-
-  return gastos;
 }
 
 /**
@@ -332,18 +343,18 @@ export async function obtenerCuotasMensuales(mes: string): Promise<CuotaMensual[
 
   const rows = response.data.values || [];
   const cuotas = rows
-    .filter((row: any[]) => row[3] === mes)
+    .filter((row: any[]) => row[0] && row[1] && row[3] === mes) // Filtrar filas incompletas y por mes
     .map((row: any[]) => ({
       id: row[0],
       gastoId: row[1],
       concepto: row[2],
       mes: row[3],
-      numeroCuota: parseInt(row[4]),
-      montoCuota: parseFloat(row[5]),
-      montoOriginal: parseFloat(row[6]),
-      reintegroAplicado: parseFloat(row[7]),
+      numeroCuota: parseInt(row[4]) || 0,
+      montoCuota: parseFloat(row[5]) || 0,
+      montoOriginal: parseFloat(row[6]) || 0,
+      reintegroAplicado: parseFloat(row[7]) || 0,
       persona: row[8] as 'Manuel' | 'Pablo',
-      createdAt: row[9],
+      createdAt: row[9] || '',
     }));
 
   return cuotas;
@@ -363,18 +374,20 @@ export async function obtenerGastosCuotas(): Promise<GastoCuotas[]> {
   });
 
   const rows = response.data.values || [];
-  return rows.map((row: any[]) => ({
-    id: row[0],
-    fecha: row[1],
-    concepto: row[2],
-    montoTotal: parseFloat(row[3]),
-    cantidadCuotas: parseInt(row[4]),
-    montoPorCuota: parseFloat(row[5]),
-    mesInicio: row[6],
-    reintegro: parseFloat(row[7]) || 0,
-    persona: row[8] as 'Manuel' | 'Pablo',
-    createdAt: row[9],
-  }));
+  return rows
+    .filter((row: any[]) => row[0] && row[1] && row[2] && row[3]) // Filtrar filas incompletas
+    .map((row: any[]) => ({
+      id: row[0],
+      fecha: row[1],
+      concepto: row[2],
+      montoTotal: parseFloat(row[3]) || 0,
+      cantidadCuotas: parseInt(row[4]) || 0,
+      montoPorCuota: parseFloat(row[5]) || 0,
+      mesInicio: row[6],
+      reintegro: parseFloat(row[7]) || 0,
+      persona: row[8] as 'Manuel' | 'Pablo',
+      createdAt: row[9] || '',
+    }));
 }
 
 /**

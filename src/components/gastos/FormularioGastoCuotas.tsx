@@ -144,23 +144,13 @@ export function FormularioGastoCuotas({ onSuccess }: FormularioGastoCuotasProps)
         ]}
       />
 
-      <div className="grid grid-cols-2 gap-4">
-        <Input
-          label="Mes de Inicio"
-          type="month"
-          value={mesInicio}
-          onChange={e => setMesInicio(e.target.value)}
-          required
-        />
-
-        <Input
-          label="Fecha"
-          type="date"
-          value={fecha}
-          onChange={e => setFecha(e.target.value)}
-          required
-        />
-      </div>
+      <Input
+        label="Mes de Inicio"
+        type="month"
+        value={mesInicio}
+        onChange={e => setMesInicio(e.target.value)}
+        required
+      />
 
       {error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { agregarGastoSimple } from '@/lib/googleSheets';
 import { GastoSimple } from '@/types';
 
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    
+
     // Validar datos requeridos
     if (!body.concepto || !body.monto || !body.persona || !body.fecha) {
       return NextResponse.json(
@@ -40,7 +40,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, id });
   } catch (error) {
-    console.error('Error al crear gasto simple:', error);
     return NextResponse.json(
       { error: 'Error al crear gasto simple' },
       { status: 500 }

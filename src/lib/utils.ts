@@ -19,13 +19,13 @@ export function cn(...inputs: ClassValue[]) {
  * Formatea un número como moneda
  * 
  * @param amount - Monto a formatear
- * @param currency - Código de moneda (default: 'USD')
+ * @param currency - Código de moneda (default: 'ARS')
  * @returns String formateado
  * 
  * @example
- * formatCurrency(1234.56) // => '$1,234.56'
+ * formatCurrency(1234.56) // => '$1.234,56'
  */
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
+export function formatCurrency(amount: number, currency: string = 'ARS'): string {
   return new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: currency,
