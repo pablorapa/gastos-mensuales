@@ -15,12 +15,25 @@ let sheetsClient: any = null;
 function getGoogleSheetsClient() {
   if (sheetsClient) return sheetsClient;
 
-  const privateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  let privateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY;
   const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL;
 
   if (!privateKey || !clientEmail) {
     throw new Error('Faltan credenciales de Google Sheets. Verifica GOOGLE_SHEETS_PRIVATE_KEY y GOOGLE_SHEETS_CLIENT_EMAIL');
   }
+
+  // Decodificar desde Base64
+  try {
+    privateKey = Buffer.from(privateKey, 'base64').toString('utf-8');
+  } catch (e) {
+    // Si no está en Base64, intentar parsear como está
+    if (privateKey.includes('\\n')) {
+      privateKey = privateKey.replace(/\\n/g, '\n');
+    }
+  }
+  
+  // Asegurar que empieza y termina correctamente
+  privateKey = privateKey.trim();
 
   const auth = new google.auth.GoogleAuth({
     credentials: {

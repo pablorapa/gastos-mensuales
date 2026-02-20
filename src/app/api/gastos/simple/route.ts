@@ -40,8 +40,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, id });
   } catch (error) {
+    console.error('Error al crear gasto simple:', error);
     return NextResponse.json(
-      { error: 'Error al crear gasto simple' },
+      { error: 'Error al crear gasto simple', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
