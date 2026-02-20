@@ -2,66 +2,45 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/Card';
-import { Balance as BalanceType } from '@/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { BalanceDetalle } from '@/types';
+import { formatCurrency } from '@/lib/utils';
 
 interface BalanceCardProps {
-  balance: BalanceType;
+  balance: BalanceDetalle;
+  title?: string;
+  subtitle?: string;
 }
 
 /**
- * Tarjeta que muestra el balance mensual entre Manuel y Pablo
+ * Tarjeta que muestra el balance entre Manuel y Pablo para un tipo de gasto
  * 
  * Muestra:
- * - Totales por persona (gastos simples + cuotas)
+ * - Totales acumulados por persona
  * - Diferencia
  * - Quién debe compensar y cuánto
  * 
- * @param balance - Datos del balance
+ * NOTA: Para "Gastos Mensuales", estos son históricos (acumula todos los meses)
+ *       Para "Gastos en Cuotas", muestra solo las cuotas del mes seleccionado
+ * 
+ * @param balance - Datos del balance (BalanceDetalle)
+ * @param title - Título de la tarjeta (ej: "Gastos Mensuales", "Gastos en Cuotas")
+ * @param subtitle - Subtítulo opcional
  * 
  * @example
- * <BalanceCard balance={balanceMensual} />
+ * <BalanceCard 
+ *   balance={balanceSimples} 
+ *   title="Gastos Mensuales (Histórico)"
+ *   subtitle="Acumulado desde el inicio"
+ * />
  */
-export function BalanceCard({ balance }: BalanceCardProps) {
+export function BalanceCard({ balance, title = 'Balance', subtitle }: BalanceCardProps) {
   return (
     <Card 
-      title="Balance Mensual" 
-      subtitle={formatDate(balance.mes, 'month')}
+      title={title}
+      subtitle={subtitle}
       className="animate-fade-in"
     >
       <div className="space-y-6">
-        {/* Totales por persona */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-xs sm:text-sm text-blue-700 font-medium mb-1">Manuel</p>
-            <p className="text-lg sm:text-2xl font-bold text-blue-900">
-              {formatCurrency(balance.totalManuel)}
-            </p>
-            <div className="mt-2 text-xs text-blue-600 space-y-0.5 sm:space-y-1">
-              <p>Simples: {formatCurrency(balance.gastosSimples.Manuel)}</p>
-              <p>Cuotas: {formatCurrency(balance.gastosCuotas.Manuel)}</p>
-            </div>
-          </div>
-
-          <div className="p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
-            <p className="text-xs sm:text-sm text-green-700 font-medium mb-1">Pablo</p>
-            <p className="text-lg sm:text-2xl font-bold text-green-900">
-              {formatCurrency(balance.totalPablo)}
-            </p>
-            <div className="mt-2 text-xs text-green-600 space-y-0.5 sm:space-y-1">
-              <p>Simples: {formatCurrency(balance.gastosSimples.Pablo)}</p>
-              <p>Cuotas: {formatCurrency(balance.gastosCuotas.Pablo)}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Total general */}
-        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-sm text-gray-600 mb-1">Total del mes</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {formatCurrency(balance.totalManuel + balance.totalPablo)}
-          </p>
-        </div>
 
         {/* Compensación */}
         {balance.deudor ? (
@@ -81,7 +60,7 @@ export function BalanceCard({ balance }: BalanceCardProps) {
               <p className="font-semibold text-orange-900">Deuda pendiente</p>
             </div>
             <p className="text-lg text-orange-800">
-              <span className="font-bold">{balance.deudor}</span> debe {' '}
+              <span className="font-bold">{balance.deudor === 'Manuel' ? 'Manu' : balance.deudor}</span> debe {' '}
               <span className="font-bold">{formatCurrency(balance.montoACompensar)}</span>
             </p>
           </div>
@@ -99,10 +78,34 @@ export function BalanceCard({ balance }: BalanceCardProps) {
               <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <p className="text-sm text-green-700 mt-1">
-              Gastaron lo mismo este mes
+              Gastaron lo mismo este período
             </p>
           </div>
         )}
+{/* 
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-xs sm:text-sm text-blue-700 font-medium mb-1">Manu</p>
+            <p className="text-lg sm:text-2xl font-bold text-blue-900">
+              {formatCurrency(balance.totalManuel)}
+            </p>
+          </div>
+
+          <div className="p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
+            <p className="text-xs sm:text-sm text-green-700 font-medium mb-1">Pablo</p>
+            <p className="text-lg sm:text-2xl font-bold text-green-900">
+              {formatCurrency(balance.totalPablo)}
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-sm text-gray-600 mb-1">Total</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {formatCurrency(balance.totalManuel + balance.totalPablo)}
+          </p>
+        </div>
+ */}
       </div>
     </Card>
   );

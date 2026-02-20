@@ -2,15 +2,16 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Loading } from '@/components/ui/Loading';
+import { Toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { BalanceCard } from '@/components/gastos/BalanceCard';
 import { ListaGastos } from '@/components/gastos/ListaGastos';
 import { FormularioGastoSimple } from '@/components/gastos/FormularioGastoSimple';
 import { FormularioGastoCuotas } from '@/components/gastos/FormularioGastoCuotas';
-import { Balance, GastoSimple, CuotaMensual } from '@/types';
+import { Balance, GastoSimple, CuotaMensual, BalancesByType } from '@/types';
 import { getCurrentMonth, formatDate } from '@/lib/utils';
 
 /**
@@ -26,11 +27,13 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [mesActual, setMesActual] = useState(getCurrentMonth());
-  const [balance, setBalance] = useState<Balance | null>(null);
+  const [balances, setBalances] = useState<BalancesByType | null>(null);
   const [gastosSimples, setGastosSimples] = useState<GastoSimple[]>([]);
   const [cuotasMensuales, setCuotasMensuales] = useState<CuotaMensual[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [vistaActual, setVistaActual] = useState<'dashboard' | 'gasto-simple' | 'gasto-cuotas'>('dashboard');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const monthInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -54,7 +57,7 @@ export default function DashboardPage() {
 
       if (balanceRes.ok) {
         const balanceData = await balanceRes.json();
-        setBalance(balanceData);
+        setBalances(balanceData);
       }
 
       if (gastosRes.ok) {
@@ -63,6 +66,7 @@ export default function DashboardPage() {
         setCuotasMensuales(gastosData.cuotasMensuales || []);
       }
     } catch (error) {
+      console.error('Error al cargar datos:', error);
     } finally {
       setIsLoading(false);
     }
@@ -120,43 +124,59 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Toast Notification */}
+        {toast && (
+          <Toast 
+            message={toast.message} 
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
         {vistaActual === 'dashboard' ? (
           <div className="space-y-8">
-            {/* Selector de mes */}
-            <div className="bg-white rounded-lg shadow-md p-4">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="w-full md:w-auto">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => cambiarMes('anterior')}
-                    className="w-full md:w-auto"
-                  >
-                    ← Anterior
-                  </Button>
-                </div>
-                <div className="text-center">
-                  <p className="text-xl md:text-2xl font-bold text-gray-900">
-                    {formatDate(mesActual, 'month')}
-                  </p>
-                  <input
-                    type="month"
-                    value={mesActual}
-                    onChange={e => setMesActual(e.target.value)}
-                    className="mt-2 px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
-                  />
-                </div>
-                <div className="w-full md:w-auto">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => cambiarMes('siguiente')}
-                    className="w-full md:w-auto"
-                  >
-                    Siguiente →
-                  </Button>
-                </div>
-              </div>
+            {/* Selector de mes - Compacto */}
+            <div className="flex items-center justify-center gap-3 bg-white rounded-lg shadow-md p-3">
+              <button
+                onClick={() => cambiarMes('anterior')}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Mes anterior"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              <p className="text-lg font-semibold text-gray-900 min-w-fit">
+                {formatDate(mesActual, 'month')}
+              </p>
+              
+              <button
+                onClick={() => monthInputRef.current?.showPicker()}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Seleccionar mes"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </button>
+
+              <button
+                onClick={() => cambiarMes('siguiente')}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Mes siguiente"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              <input
+                ref={monthInputRef}
+                type="month"
+                value={mesActual}
+                onChange={e => setMesActual(e.target.value)}
+                className="hidden"
+              />
             </div>
 
             {/* Botones de acción */}
@@ -181,8 +201,21 @@ export default function DashboardPage() {
               <Loading />
             ) : (
               <>
-                {/* Balance */}
-                {balance && <BalanceCard balance={balance} />}
+                {/* Balances por tipo de gasto */}
+                {balances && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <BalanceCard 
+                      balance={balances.simples} 
+                      title="Gastos Mensuales"
+                      subtitle="Acumulado histórico"
+                    />
+                    <BalanceCard 
+                      balance={balances.cuotas} 
+                      title="Gastos en Cuotas"
+                      subtitle={formatDate(balances.mes, 'month')}
+                    />
+                  </div>
+                )}
 
                 {/* Lista de gastos */}
                 <Card title="Gastos del Mes">
@@ -201,11 +234,12 @@ export default function DashboardPage() {
               onClick={() => setVistaActual('dashboard')}
               className="mb-4"
             >
-              ← Volver al Dashboard
+              ← Volver al Inicio
             </Button>
             <Card title="Nuevo Gasto Simple">
               <FormularioGastoSimple
                 onSuccess={() => {
+                  setToast({ message: 'Gasto agregado con éxito', type: 'success' });
                   setVistaActual('dashboard');
                   cargarDatos();
                 }}
@@ -219,11 +253,12 @@ export default function DashboardPage() {
               onClick={() => setVistaActual('dashboard')}
               className="mb-4"
             >
-              ← Volver al Dashboard
+              ← Volver al Inicio
             </Button>
             <Card title="Nuevo Gasto en Cuotas">
               <FormularioGastoCuotas
                 onSuccess={() => {
+                  setToast({ message: 'Gasto en cuotas agregado con éxito', type: 'success' });
                   setVistaActual('dashboard');
                   cargarDatos();
                 }}

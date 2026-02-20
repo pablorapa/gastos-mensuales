@@ -23,13 +23,14 @@ export function cn(...inputs: ClassValue[]) {
  * @returns String formateado
  * 
  * @example
- * formatCurrency(1234.56) // => '$1.234,56'
+ * formatCurrency(1234) // => '$1.234'
  */
 export function formatCurrency(amount: number, currency: string = 'ARS'): string {
   return new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: currency,
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(amount);
 }
 
@@ -138,7 +139,53 @@ export function generateMonths(startMonth: string, count: number): string[] {
 export function calculateDebt(totalManuel: number, totalPablo: number) {
   const diferencia = totalManuel - totalPablo;
   const deudor = diferencia > 0 ? 'Pablo' : diferencia < 0 ? 'Manuel' : null;
-  const montoACompensar = Math.abs(diferencia) / 2;
+  //const montoACompensar = Math.abs(diferencia) / 2;
+  const montoACompensar = Math.abs(diferencia);
 
   return { deudor, montoACompensar, diferencia };
+}
+
+/**
+ * Formatea un valor numérico para mostrar en inputs con separadores de miles (puntos)
+ * Solo números enteros, sin decimales
+ * 
+ * @param value - Número a formatear
+ * @returns String formateado (ej: "1.234")
+ * 
+ * @example
+ * formatNumberInput(1234) // => "1.234"
+ * formatNumberInput(123456) // => "123.456"
+ */
+export function formatNumberInput(value: number | string): string {
+  if (!value && value !== 0) return '';
+  
+  let num: number;
+  
+  if (typeof value === 'string') {
+    num = parseInt(value, 10) || 0;
+  } else {
+    num = Math.round(value); // Redondear a entero
+  }
+  
+  if (isNaN(num)) return '';
+  
+  // Agregar separadores de miles con puntos
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+/**
+ * Parsea un valor formateado del input (con puntos) a número entero
+ * 
+ * @param value - String formateado (ej: "1.234")
+ * @returns Número entero parseado (1234)
+ * 
+ * @example
+ * parseNumberInput("1.234") // => 1234
+ */
+export function parseNumberInput(value: string): number {
+  if (!value) return 0;
+  
+  // Remover puntos (separadores de miles)
+  const cleaned = value.replace(/\./g, '');
+  return parseInt(cleaned, 10) || 0;
 }

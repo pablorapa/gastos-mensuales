@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { GastoSimple, CuotaMensual } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
@@ -23,6 +24,17 @@ interface ListaGastosProps {
  */
 export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps) {
   const hayGastos = gastosSimples.length > 0 || cuotasMensuales.length > 0;
+
+  // Ordenar por createdAt descendente (más recientes primero) y limitar a los primeros 10
+  const gastosSimplesMostrados = [...gastosSimples]
+    .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
+    .slice(0, 10);
+  const cuotasMensualesMostradas = [...cuotasMensuales]
+    .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
+    .slice(0, 10);
+  
+  const hayMasGastosSimples = gastosSimples.length > 10;
+  const hayMasCuotas = cuotasMensuales.length > 10;
 
   if (!hayGastos) {
     return (
@@ -50,10 +62,10 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
       {gastosSimples.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            Gastos Simples ({gastosSimples.length})
+            Gastos Comunes ({gastosSimplesMostrados.length}{hayMasGastosSimples ? ` de ${gastosSimples.length}` : ''})
           </h3>
           <div className="space-y-2">
-            {gastosSimples.map(gasto => (
+            {gastosSimplesMostrados.map(gasto => (
               <div
                 key={gasto.id}
                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow gap-2 sm:gap-4"
@@ -66,7 +78,7 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
                         ? 'bg-blue-100 text-blue-800' 
                         : 'bg-green-100 text-green-800'
                     }`}>
-                      {gasto.persona}
+                      {gasto.persona === 'Manuel' ? 'Manu' : gasto.persona}
                     </span>
                     <span className="text-xs text-gray-500 flex-shrink-0">
                       {formatDate(gasto.fecha)}
@@ -79,6 +91,16 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
               </div>
             ))}
           </div>
+          {hayMasGastosSimples && (
+            <div className="mt-3 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+              <p className="text-xs text-gray-600">
+                <span className="font-semibold">{gastosSimples.length - 10}</span> gasto(s) más no se están mostrando
+              </p>
+              <Link href="/gastos" className="text-xs font-semibold text-primary-600 hover:text-primary-700 hover:underline">
+                Ver todos →
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
@@ -86,10 +108,10 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
       {cuotasMensuales.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            Cuotas del Mes ({cuotasMensuales.length})
+            Cuotas del Mes ({cuotasMensualesMostradas.length}{hayMasCuotas ? ` de ${cuotasMensuales.length}` : ''})
           </h3>
           <div className="space-y-2">
-            {cuotasMensuales.map(cuota => (
+            {cuotasMensualesMostradas.map(cuota => (
               <div
                 key={cuota.id}
                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow gap-3 sm:gap-4"
@@ -102,7 +124,7 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
                         ? 'bg-blue-100 text-blue-800' 
                         : 'bg-green-100 text-green-800'
                     }`}>
-                      {cuota.persona}
+                      {cuota.persona === 'Manuel' ? 'Manu' : cuota.persona}
                     </span>
                     <span className="text-xs text-gray-500 flex-shrink-0">
                       Cuota {cuota.numeroCuota}
@@ -127,6 +149,16 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
               </div>
             ))}
           </div>
+          {hayMasCuotas && (
+            <div className="mt-3 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+              <p className="text-xs text-gray-600">
+                <span className="font-semibold">{cuotasMensuales.length - 10}</span> cuota(s) más no se está(n) mostrando
+              </p>
+              <Link href="/gastos" className="text-xs font-semibold text-primary-600 hover:text-primary-700 hover:underline">
+                Ver todos →
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>

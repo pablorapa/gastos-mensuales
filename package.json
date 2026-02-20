@@ -1,7 +1,7 @@
 {
   "name": "gastos-compartidos",
   "version": "1.0.0",
-  "description": "Aplicación web para gestionar gastos compartidos entre Manuel y Pablo",
+  "description": "Aplicación web para gestionar gastos compartidos",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

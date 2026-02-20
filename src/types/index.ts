@@ -93,3 +93,24 @@ export interface Usuario {
   email: string;
   image?: string;
 }
+
+/**
+ * Balance detallado por tipo de gasto (para uso en BalancesByType)
+ */
+export interface BalanceDetalle {
+  totalManuel: number;
+  totalPablo: number;
+  diferencia: number;
+  deudor: Persona | null;
+  montoACompensar: number;
+}
+
+/**
+ * Balance separado por tipo de gasto (mensual vs cuotas)
+ * Permite ver dos balances independientes en el dashboard
+ */
+export interface BalancesByType {
+  mes: string; // YYYY-MM format
+  simples: BalanceDetalle;
+  cuotas: BalanceDetalle;
+}

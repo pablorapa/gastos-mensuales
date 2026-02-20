@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { getCurrentDate, getCurrentMonth } from '@/lib/utils';
+import { getCurrentDate, getCurrentMonth, formatNumberInput, parseNumberInput } from '@/lib/utils';
 import { Persona } from '@/types';
 
 interface FormularioGastoCuotasProps {
@@ -25,6 +26,7 @@ interface FormularioGastoCuotasProps {
  * <FormularioGastoCuotas onSuccess={() => refetch()} />
  */
 export function FormularioGastoCuotas({ onSuccess }: FormularioGastoCuotasProps) {
+  const { data: session } = useSession();
   const [concepto, setConcepto] = useState('');
   const [montoTotal, setMontoTotal] = useState('');
   const [cantidadCuotas, setCantidadCuotas] = useState('');
@@ -35,10 +37,47 @@ export function FormularioGastoCuotas({ onSuccess }: FormularioGastoCuotasProps)
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Calcular monto por cuota
+  // Detectar si el email del usuario contiene 'pablo' y establecer default
+  useEffect(() => {
+    if (session?.user?.email?.toLowerCase().includes('pablo')) {
+      setPersona('Pablo');
+    }
+  }, [session]);
+
+  const handleMontoTotalChange = (value: string) => {
+    // Extraer solo dígitos del input
+    const onlyNumbers = value.replace(/\D/g, '');
+    
+    if (onlyNumbers === '') {
+      setMontoTotal('');
+      return;
+    }
+    
+    // Formatear como número entero con separadores de miles
+    const numValue = parseInt(onlyNumbers, 10);
+    const formatted = formatNumberInput(numValue);
+    setMontoTotal(formatted);
+  };
+
+  const handleReintegroChange = (value: string) => {
+    // Extraer solo dígitos del input
+    const onlyNumbers = value.replace(/\D/g, '');
+    
+    if (onlyNumbers === '') {
+      setReintegro('');
+      return;
+    }
+    
+    // Formatear como número entero con separadores de miles
+    const numValue = parseInt(onlyNumbers, 10);
+    const formatted = formatNumberInput(numValue);
+    setReintegro(formatted);
+  };
+
+  // Calcular monto por cuota (redondeando al próximo entero)
   const montoPorCuota = montoTotal && cantidadCuotas 
-    ? (parseFloat(montoTotal) / parseInt(cantidadCuotas)).toFixed(2)
-    : '0.00';
+    ? Math.ceil(parseNumberInput(montoTotal) / parseInt(cantidadCuotas))
+    : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,11 +90,11 @@ export function FormularioGastoCuotas({ onSuccess }: FormularioGastoCuotasProps)
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           concepto,
-          montoTotal: parseFloat(montoTotal),
+          montoTotal: parseNumberInput(montoTotal),
           cantidadCuotas: parseInt(cantidadCuotas),
-          montoPorCuota: parseFloat(montoPorCuota),
+          montoPorCuota: montoPorCuota,
           mesInicio,
-          reintegro: reintegro ? parseFloat(reintegro) : undefined,
+          reintegro: reintegro ? parseNumberInput(reintegro) : undefined,
           persona,
           fecha,
         }),
@@ -89,19 +128,17 @@ export function FormularioGastoCuotas({ onSuccess }: FormularioGastoCuotasProps)
         label="Concepto"
         value={concepto}
         onChange={e => setConcepto(e.target.value)}
-        placeholder="Ej: Notebook"
+        placeholder="Ej: Sillón"
         required
       />
 
       <div className="grid grid-cols-2 gap-4">
         <Input
           label="Monto Total"
-          type="number"
-          step="0.01"
-          min="0"
+          type="text"
           value={montoTotal}
-          onChange={e => setMontoTotal(e.target.value)}
-          placeholder="600.00"
+          onChange={e => handleMontoTotalChange(e.target.value)}
+          placeholder="0"
           required
         />
 
@@ -116,22 +153,20 @@ export function FormularioGastoCuotas({ onSuccess }: FormularioGastoCuotasProps)
         />
       </div>
 
-      {montoPorCuota !== '0.00' && (
+      {montoPorCuota !== 0 && (
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-blue-900">
-            <span className="font-semibold">Monto por cuota:</span> ${montoPorCuota}
+            <span className="font-semibold">Monto por cuota:</span> {formatNumberInput(montoPorCuota)}
           </p>
         </div>
       )}
 
       <Input
         label="Reintegro (opcional)"
-        type="number"
-        step="0.01"
-        min="0"
+        type="text"
         value={reintegro}
-        onChange={e => setReintegro(e.target.value)}
-        placeholder="180.00"
+        onChange={e => handleReintegroChange(e.target.value)}
+        placeholder="0"
       />
 
       <Select
@@ -139,7 +174,7 @@ export function FormularioGastoCuotas({ onSuccess }: FormularioGastoCuotasProps)
         value={persona}
         onChange={e => setPersona(e.target.value as Persona)}
         options={[
-          { value: 'Manuel', label: 'Manuel' },
+          { value: 'Manuel', label: 'Manu' },
           { value: 'Pablo', label: 'Pablo' },
         ]}
       />

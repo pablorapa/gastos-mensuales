@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { getCurrentDate } from '@/lib/utils';
+import { getCurrentDate, formatNumberInput, parseNumberInput } from '@/lib/utils';
 import { Persona } from '@/types';
 
 interface FormularioGastoSimpleProps {
@@ -20,12 +21,35 @@ interface FormularioGastoSimpleProps {
  * <FormularioGastoSimple onSuccess={() => refetch()} />
  */
 export function FormularioGastoSimple({ onSuccess }: FormularioGastoSimpleProps) {
+  const { data: session } = useSession();
   const [concepto, setConcepto] = useState('');
   const [monto, setMonto] = useState('');
   const [persona, setPersona] = useState<Persona>('Manuel');
   const [fecha, setFecha] = useState(getCurrentDate());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Detectar si el email del usuario contiene 'pablo' y establecer default
+  useEffect(() => {
+    if (session?.user?.email?.toLowerCase().includes('pablo')) {
+      setPersona('Pablo');
+    }
+  }, [session]);
+
+  const handleMontoChange = (value: string) => {
+    // Extraer solo dígitos del input
+    const onlyNumbers = value.replace(/\D/g, '');
+    
+    if (onlyNumbers === '') {
+      setMonto('');
+      return;
+    }
+    
+    // Formatear como número entero con separadores de miles
+    const numValue = parseInt(onlyNumbers, 10);
+    const formatted = formatNumberInput(numValue);
+    setMonto(formatted);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +62,7 @@ export function FormularioGastoSimple({ onSuccess }: FormularioGastoSimpleProps)
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           concepto,
-          monto: parseFloat(monto),
+          monto: parseNumberInput(monto),
           persona,
           fecha,
         }),
@@ -75,12 +99,10 @@ export function FormularioGastoSimple({ onSuccess }: FormularioGastoSimpleProps)
 
       <Input
         label="Monto"
-        type="number"
-        step="0.01"
-        min="0"
+        type="text"
         value={monto}
-        onChange={e => setMonto(e.target.value)}
-        placeholder="100.00"
+        onChange={e => handleMontoChange(e.target.value)}
+        placeholder="0"
         required
       />
 
@@ -89,7 +111,7 @@ export function FormularioGastoSimple({ onSuccess }: FormularioGastoSimpleProps)
         value={persona}
         onChange={e => setPersona(e.target.value as Persona)}
         options={[
-          { value: 'Manuel', label: 'Manuel' },
+          { value: 'Manuel', label: 'Manu' },
           { value: 'Pablo', label: 'Pablo' },
         ]}
       />

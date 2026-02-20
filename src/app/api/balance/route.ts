@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { calcularBalance, obtenerBalance } from '@/lib/googleSheets';
+import { calcularBalanceByType } from '@/lib/googleSheets';
 
 /**
  * GET /api/balance?mes=YYYY-MM
- * Obtiene el balance de un mes específico
+ * Obtiene el balance separado por tipo de gasto (simples vs cuotas) para un mes específico
  * 
  * @query {string} mes - Mes en formato YYYY-MM
- * @returns {Balance} Balance del mes
+ * @returns {BalancesByType} Balances separados para gastos simples y cuotas
  */
 export async function GET(request: Request) {
   try {
@@ -28,9 +28,9 @@ export async function GET(request: Request) {
       );
     }
 
-    const balance = await calcularBalance(mes);
+    const balances = await calcularBalanceByType(mes);
 
-    return NextResponse.json(balance);
+    return NextResponse.json(balances);
   } catch (error) {
     console.error('Error al obtener balance:', error);
     return NextResponse.json(

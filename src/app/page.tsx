@@ -48,7 +48,7 @@ export default function HomePage() {
             Gastos Compartidos
           </h1>
           <p className="text-gray-600">
-            Gestiona gastos entre Manuel y Pablo
+            Gestiona gastos entre los Puchis
           </p>
         </div>
 

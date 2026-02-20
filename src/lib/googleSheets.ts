@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { GastoSimple, GastoCuotas, CuotaMensual, Balance } from '@/types';
+import { GastoSimple, GastoCuotas, CuotaMensual, Balance, BalancesByType, BalanceDetalle } from '@/types';
 
 /**
  * Cliente de Google Sheets configurado con credenciales
@@ -428,7 +428,8 @@ export async function calcularBalance(mes: string): Promise<Balance> {
   
   const diferencia = totalManuel - totalPablo;
   const deudor = diferencia > 0 ? 'Pablo' : diferencia < 0 ? 'Manuel' : null;
-  const montoACompensar = Math.abs(diferencia) / 2;
+  //const montoACompensar = Math.abs(diferencia) / 2;
+  const montoACompensar = Math.abs(diferencia);
 
   const balance: Balance = {
     mes,
@@ -451,6 +452,93 @@ export async function calcularBalance(mes: string): Promise<Balance> {
   await guardarBalance(balance);
 
   return balance;
+}
+
+/**
+ * Calcula el balance separado por tipo de gasto (simples vs cuotas)
+ * 
+ * IMPORTANTE:
+ * - Gastos Simples: Se mantienen históricos (acumulativos de todos los meses)
+ * - Gastos en Cuotas: Solo las cuotas del mes seleccionado
+ * 
+ * Esto permite ver un balance histórico de los gastos mensuales vs
+ * el balance mensual de las cuotas
+ * 
+ * @param mes - Mes en formato YYYY-MM (solo afecta a las cuotas)
+ * @returns BalancesByType con balance acumulado de simples y cuotas del mes
+ * 
+ * @example
+ * const balances = await calcularBalanceByType('2024-03');
+ * // balances.simples = TODOS los gastos mensuales históricos
+ * // balances.cuotas = solo cuotas de marzo 2024
+ */
+export async function calcularBalanceByType(mes: string): Promise<BalancesByType> {
+  // Obtener TODOS los gastos simples (sin filtrar por mes)
+  const gastosSimples = await obtenerGastosSimples();
+  // Obtener solo las cuotas del mes seleccionado
+  const cuotasMensuales = await obtenerCuotasMensuales(mes);
+
+  // Cálculo para GASTOS SIMPLES (históricos)
+  const gastosManuelSimples = gastosSimples
+    .filter(g => g.persona === 'Manuel')
+    .reduce((sum, g) => sum + g.monto, 0);
+
+  const gastosPabloSimples = gastosSimples
+    .filter(g => g.persona === 'Pablo')
+    .reduce((sum, g) => sum + g.monto, 0);
+
+  const totalSimplesManuel = gastosManuelSimples;
+  const totalSimplesPablo = gastosPabloSimples;
+  const totalGeneralSimples = totalSimplesManuel + totalSimplesPablo;
+  const diferenciaSimpeles = totalSimplesManuel - totalSimplesPablo;
+
+  // Cálculo para CUOTAS MENSUALES (solo del mes seleccionado)
+  const gastosManuelCuotas = cuotasMensuales
+    .filter(c => c.persona === 'Manuel')
+    .reduce((sum, c) => sum + c.montoCuota, 0);
+
+  const gastosPabloCuotas = cuotasMensuales
+    .filter(c => c.persona === 'Pablo')
+    .reduce((sum, c) => sum + c.montoCuota, 0);
+
+  const totalCuotasManuel = gastosManuelCuotas;
+  const totalCuotasPablo = gastosPabloCuotas;
+  const totalGeneralCuotas = totalCuotasManuel + totalCuotasPablo;
+  const diferenciaCuotas = totalCuotasManuel - totalCuotasPablo;
+
+  // Función auxiliar para calcular deudor y monto a compensar
+  const calcularDeuda = (diferencia: number, totalGeneral: number): { deudor: ('Manuel' | 'Pablo' | null), montoACompensar: number } => {
+    const deudor = diferencia > 0 ? 'Pablo' as const : diferencia < 0 ? 'Manuel' as const : null;
+    //const montoACompensar = Math.abs(diferencia) / 2;
+    const montoACompensar = Math.abs(diferencia);
+    return { deudor, montoACompensar };
+  };
+
+  const { deudor: deudorSimples, montoACompensar: montoSimplesCompensar } = 
+    calcularDeuda(diferenciaSimpeles, totalGeneralSimples);
+
+  const { deudor: deudorCuotas, montoACompensar: montoCuotasCompensar } = 
+    calcularDeuda(diferenciaCuotas, totalGeneralCuotas);
+
+  const balancesByType: BalancesByType = {
+    mes,
+    simples: {
+      totalManuel: totalSimplesManuel,
+      totalPablo: totalSimplesPablo,
+      diferencia: diferenciaSimpeles,
+      deudor: deudorSimples,
+      montoACompensar: montoSimplesCompensar,
+    },
+    cuotas: {
+      totalManuel: totalCuotasManuel,
+      totalPablo: totalCuotasPablo,
+      diferencia: diferenciaCuotas,
+      deudor: deudorCuotas,
+      montoACompensar: montoCuotasCompensar,
+    },
+  };
+
+  return balancesByType;
 }
 
 /**
