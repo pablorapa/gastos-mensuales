@@ -91,61 +91,6 @@ export function getCurrentDate(): string {
 }
 
 /**
- * Valida si un email está en la lista de usuarios autorizados
- * 
- * @param email - Email a validar
- * @returns true si está autorizado
- */
-export function isAuthorizedUser(email: string): boolean {
-  const authorizedUsers = process.env.AUTHORIZED_USERS?.split(',').map(e => e.trim()) || [];
-  return authorizedUsers.includes(email);
-}
-
-/**
- * Genera un array de meses a partir de un mes inicial
- * 
- * @param startMonth - Mes inicial en formato YYYY-MM
- * @param count - Cantidad de meses
- * @returns Array de meses en formato YYYY-MM
- * 
- * @example
- * generateMonths('2024-03', 3) // => ['2024-03', '2024-04', '2024-05']
- */
-export function generateMonths(startMonth: string, count: number): string[] {
-  const [year, month] = startMonth.split('-').map(Number);
-  const months: string[] = [];
-
-  for (let i = 0; i < count; i++) {
-    const date = new Date(year, month - 1 + i, 1);
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    months.push(`${y}-${m}`);
-  }
-
-  return months;
-}
-
-/**
- * Calcula el monto que cada persona debe pagar para equilibrar
- * 
- * @param totalManuel - Total pagado por Manuel
- * @param totalPablo - Total pagado por Pablo
- * @returns Objeto con deudor y monto a compensar
- * 
- * @example
- * calculateDebt(150, 100)
- * // => { deudor: 'Pablo', montoACompensar: 25 }
- */
-export function calculateDebt(totalManuel: number, totalPablo: number) {
-  const diferencia = totalManuel - totalPablo;
-  const deudor = diferencia > 0 ? 'Pablo' : diferencia < 0 ? 'Manuel' : null;
-  //const montoACompensar = Math.abs(diferencia) / 2;
-  const montoACompensar = Math.abs(diferencia);
-
-  return { deudor, montoACompensar, diferencia };
-}
-
-/**
  * Formatea un valor numérico para mostrar en inputs con separadores de miles (puntos)
  * Solo números enteros, sin decimales
  * 

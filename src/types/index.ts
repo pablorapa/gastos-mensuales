@@ -30,7 +30,6 @@ export interface GastoCuotas {
   montoPorCuota: number;
   mesInicio: string; // YYYY-MM format
   reintegro?: number; // Monto de reintegro (opcional)
-  reintegroPorcentaje?: number; // Porcentaje de reintegro (opcional)
   persona: Persona;
   fecha: string;
   createdAt?: string;
@@ -55,45 +54,6 @@ export interface CuotaMensual {
 /**
  * Balance mensual entre las dos personas
  */
-export interface Balance {
-  mes: string; // YYYY-MM format
-  totalManuel: number;
-  totalPablo: number;
-  diferencia: number;
-  deudor: Persona | null;
-  montoACompensar: number;
-  gastosSimples: {
-    Manuel: number;
-    Pablo: number;
-  };
-  gastosCuotas: {
-    Manuel: number;
-    Pablo: number;
-  };
-}
-
-/**
- * Resumen general de gastos
- */
-export interface ResumenGeneral {
-  totalManuel: number;
-  totalPablo: number;
-  diferencia: number;
-  deudor: Persona | null;
-  montoACompensar: number;
-  ultimaActualizacion: string;
-}
-
-/**
- * Datos de sesión del usuario
- */
-export interface Usuario {
-  id: string;
-  name: string;
-  email: string;
-  image?: string;
-}
-
 /**
  * Balance detallado por tipo de gasto (para uso en BalancesByType)
  */

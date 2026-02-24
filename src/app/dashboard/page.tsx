@@ -11,7 +11,7 @@ import { BalanceCard } from '@/components/gastos/BalanceCard';
 import { ListaGastos } from '@/components/gastos/ListaGastos';
 import { FormularioGastoSimple } from '@/components/gastos/FormularioGastoSimple';
 import { FormularioGastoCuotas } from '@/components/gastos/FormularioGastoCuotas';
-import { Balance, GastoSimple, CuotaMensual, BalancesByType } from '@/types';
+import { GastoSimple, CuotaMensual, BalancesByType } from '@/types';
 import { getCurrentMonth, formatDate } from '@/lib/utils';
 
 /**
