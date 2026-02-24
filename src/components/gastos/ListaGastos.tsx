@@ -50,7 +50,7 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
         >
           <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
-        <p className="font-medium">No hay gastos registrados este mes</p>
+        <p className="font-medium">No hay gastos registrados</p>
         <p className="text-sm mt-1">Agregá un gasto para comenzar</p>
       </div>
     );
@@ -62,7 +62,7 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
       {gastosSimples.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            Gastos Comunes ({gastosSimplesMostrados.length}{hayMasGastosSimples ? ` de ${gastosSimples.length}` : ''})
+            Gastos Comunes — histórico ({gastosSimplesMostrados.length}{hayMasGastosSimples ? ` de ${gastosSimples.length}` : ''})
           </h3>
           <div className="space-y-2">
             {gastosSimplesMostrados.map(gasto => (
@@ -97,7 +97,7 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
                 <span className="font-semibold">{gastosSimples.length - 10}</span> gasto(s) más no se están mostrando
               </p>
               <Link href="/gastos" className="text-xs font-semibold text-primary-600 hover:text-primary-700 hover:underline">
-                Ver todos →
+                Ver todos
               </Link>
             </div>
           )}
@@ -155,7 +155,7 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
                 <span className="font-semibold">{cuotasMensuales.length - 10}</span> cuota(s) más no se está(n) mostrando
               </p>
               <Link href="/gastos" className="text-xs font-semibold text-primary-600 hover:text-primary-700 hover:underline">
-                Ver todos →
+                Ver todos
               </Link>
             </div>
           )}

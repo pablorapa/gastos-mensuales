@@ -206,7 +206,7 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <BalanceCard 
                       balance={balances.simples} 
-                      title="Gastos Mensuales"
+                      title="Gastos Comunes"
                       subtitle="Acumulado histórico"
                     />
                     <BalanceCard 

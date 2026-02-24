@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     }
 
     const [gastosSimples, cuotasMensuales] = await Promise.all([
-      obtenerGastosSimples(mes),
+      obtenerGastosSimples(), // histórico completo, sin filtro de mes
       obtenerCuotasMensuales(mes),
     ]);
 
