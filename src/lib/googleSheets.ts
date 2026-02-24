@@ -2,49 +2,77 @@ import { google } from 'googleapis';
 import { GastoSimple, GastoCuotas, CuotaMensual, Balance, BalancesByType, BalanceDetalle } from '@/types';
 
 /**
- * Cliente de Google Sheets configurado con credenciales
+ * Obtiene las credenciales del service account de Google.
+ * Soporta tres estrategias (en orden de prioridad):
+ *  1. GOOGLE_SERVICE_ACCOUNT_JSON  → JSON completo en base64 (recomendado para Vercel)
+ *  2. GOOGLE_SERVICE_ACCOUNT_JSON  → JSON plano (string)
+ *  3. GOOGLE_SHEETS_CLIENT_EMAIL + GOOGLE_SHEETS_PRIVATE_KEY por separado
  */
-let sheetsClient: any = null;
+function getCredentials(): { client_email: string; private_key: string } {
+  const jsonEnv = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
 
-/**
- * Inicializa el cliente de Google Sheets con las credenciales de service account
- * 
- * @returns Cliente de Google Sheets autenticado
- * @throws Error si faltan las credenciales necesarias
- */
-function getGoogleSheetsClient() {
-  if (sheetsClient) return sheetsClient;
+  if (jsonEnv) {
+    try {
+      // Intentar base64 primero
+      const decoded = Buffer.from(jsonEnv, 'base64').toString('utf-8');
+      const parsed = JSON.parse(decoded);
+      if (parsed.client_email && parsed.private_key) {
+        console.log('[DEBUG] Credenciales cargadas desde GOOGLE_SERVICE_ACCOUNT_JSON (base64)');
+        return { client_email: parsed.client_email, private_key: parsed.private_key };
+      }
+    } catch {
+      // No era base64 válido, intentar como JSON plano
+    }
 
-  let privateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY;
-  const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL;
-
-  if (!privateKey || !clientEmail) {
-    throw new Error('Faltan credenciales de Google Sheets. Verifica GOOGLE_SHEETS_PRIVATE_KEY y GOOGLE_SHEETS_CLIENT_EMAIL');
-  }
-
-  // Decodificar desde Base64
-  try {
-    privateKey = Buffer.from(privateKey, 'base64').toString('utf-8');
-  } catch (e) {
-    // Si no está en Base64, intentar parsear como está
-    if (privateKey.includes('\\n')) {
-      privateKey = privateKey.replace(/\\n/g, '\n');
+    try {
+      const parsed = JSON.parse(jsonEnv);
+      if (parsed.client_email && parsed.private_key) {
+        console.log('[DEBUG] Credenciales cargadas desde GOOGLE_SERVICE_ACCOUNT_JSON (JSON plano)');
+        return { client_email: parsed.client_email, private_key: parsed.private_key };
+      }
+    } catch {
+      throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON no es un JSON válido ni base64 válido');
     }
   }
-  
-  // Asegurar que empieza y termina correctamente
-  privateKey = privateKey.trim();
+
+  // Fallback: variables separadas
+  const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL;
+  let privateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY;
+
+  if (!privateKey || !clientEmail) {
+    throw new Error(
+      'Faltan credenciales. Define GOOGLE_SERVICE_ACCOUNT_JSON (recomendado) ' +
+      'o GOOGLE_SHEETS_CLIENT_EMAIL + GOOGLE_SHEETS_PRIVATE_KEY'
+    );
+  }
+
+  // Normalizar saltos de línea (soporta \n literal, \\n escapado y _SALTO_LINEA_)
+  privateKey = privateKey
+    .replace(/_SALTO_LINEA_/g, '\n')
+    .replace(/\\n/g, '\n')
+    .trim();
+
+  if (!privateKey.includes('BEGIN PRIVATE KEY') || !privateKey.includes('END PRIVATE KEY')) {
+    throw new Error('GOOGLE_SHEETS_PRIVATE_KEY no tiene el formato PEM correcto');
+  }
+
+  console.log('[DEBUG] Credenciales cargadas desde variables separadas. Email:', clientEmail);
+  return { client_email: clientEmail, private_key: privateKey };
+}
+
+/**
+ * Crea un cliente de Google Sheets autenticado.
+ * No se cachea a nivel de módulo para evitar tokens expirados en entornos serverless.
+ */
+function getGoogleSheetsClient() {
+  const credentials = getCredentials();
 
   const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: clientEmail,
-      private_key: privateKey,
-    },
+    credentials,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
 
-  sheetsClient = google.sheets({ version: 'v4', auth });
-  return sheetsClient;
+  return google.sheets({ version: 'v4', auth });
 }
 
 /**
