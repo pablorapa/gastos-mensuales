@@ -62,7 +62,7 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
       {gastosSimples.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            Gastos Comunes — histórico ({gastosSimplesMostrados.length}{hayMasGastosSimples ? ` de ${gastosSimples.length}` : ''})
+            Gastos comunes ({gastosSimplesMostrados.length}{hayMasGastosSimples ? ` de ${gastosSimples.length}` : ''})
           </h3>
           <div className="space-y-2">
             {gastosSimplesMostrados.map(gasto => (
@@ -108,7 +108,7 @@ export function ListaGastos({ gastosSimples, cuotasMensuales }: ListaGastosProps
       {cuotasMensuales.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            Cuotas del Mes ({cuotasMensualesMostradas.length}{hayMasCuotas ? ` de ${cuotasMensuales.length}` : ''})
+            Cuotas del mes ({cuotasMensualesMostradas.length}{hayMasCuotas ? ` de ${cuotasMensuales.length}` : ''})
           </h3>
           <div className="space-y-2">
             {cuotasMensualesMostradas.map(cuota => (

@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [cuotasMensuales, setCuotasMensuales] = useState<CuotaMensual[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [vistaActual, setVistaActual] = useState<'dashboard' | 'gasto-simple' | 'gasto-cuotas'>('dashboard');
+  const [tabActual, setTabActual] = useState<'simples' | 'cuotas'>('simples');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const monthInputRef = useRef<HTMLInputElement>(null);
 
@@ -133,7 +134,7 @@ export default function DashboardPage() {
           />
         )}
         {vistaActual === 'dashboard' ? (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* Selector de mes - Compacto */}
             <div className="flex items-center justify-center gap-3 bg-white rounded-lg shadow-md p-3">
               <button
@@ -179,52 +180,78 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Botones de acción */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button
-                variant="primary"
-                onClick={() => setVistaActual('gasto-simple')}
-                className="h-16"
+            {/* Tab switcher */}
+            <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+              <button
+                onClick={() => setTabActual('simples')}
+                className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  tabActual === 'simples'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
               >
-                + Agregar Gasto Simple
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setVistaActual('gasto-cuotas')}
-                className="h-16"
+                Gastos comunes
+              </button>
+              <button
+                onClick={() => setTabActual('cuotas')}
+                className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  tabActual === 'cuotas'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
               >
-                + Agregar Gasto en Cuotas
-              </Button>
+                Gastos en cuotas
+              </button>
             </div>
 
             {isLoading ? (
               <Loading />
-            ) : (
-              <>
-                {/* Balances por tipo de gasto */}
+            ) : tabActual === 'simples' ? (
+              <div className="space-y-6">
+                <Button
+                  variant="primary"
+                  onClick={() => setVistaActual('gasto-simple')}
+                  className="w-full h-14"
+                >
+                  + Agregar gasto común
+                </Button>
                 {balances && (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <BalanceCard 
-                      balance={balances.simples} 
-                      title="Gastos Comunes"
-                      subtitle="Acumulado histórico"
-                    />
-                    <BalanceCard 
-                      balance={balances.cuotas} 
-                      title="Gastos en Cuotas"
-                      subtitle={formatDate(balances.mes, 'month')}
-                    />
-                  </div>
+                  <BalanceCard
+                    balance={balances.simples}
+                    title="Balance gastos comunes"
+                    subtitle="Acumulado histórico"
+                  />
                 )}
-
-                {/* Lista de gastos */}
-                <Card title="Gastos del Mes">
+                <Card title="Gastos comunes del mes">
                   <ListaGastos
                     gastosSimples={gastosSimples}
+                    cuotasMensuales={[]}
+                  />
+                </Card>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setVistaActual('gasto-cuotas')}
+                  className="w-full h-14"
+                >
+                  + Agregar gasto en cuotas
+                </Button>
+                {balances && (
+                  <BalanceCard
+                    balance={balances.cuotas}
+                    title="Balance cuotas"
+                    subtitle={formatDate(balances.mes, 'month')}
+                  />
+                )}
+                <Card title="Cuotas del mes">
+                  <ListaGastos
+                    gastosSimples={[]}
                     cuotasMensuales={cuotasMensuales}
                   />
                 </Card>
-              </>
+              </div>
             )}
           </div>
         ) : vistaActual === 'gasto-simple' ? (
@@ -236,10 +263,11 @@ export default function DashboardPage() {
             >
               ← Volver al Inicio
             </Button>
-            <Card title="Nuevo Gasto Simple">
+            <Card title="Nuevo gasto común">
               <FormularioGastoSimple
                 onSuccess={() => {
                   setToast({ message: 'Gasto agregado con éxito', type: 'success' });
+                  setTabActual('simples');
                   setVistaActual('dashboard');
                   cargarDatos();
                 }}
@@ -255,10 +283,11 @@ export default function DashboardPage() {
             >
               ← Volver al Inicio
             </Button>
-            <Card title="Nuevo Gasto en Cuotas">
+            <Card title="Nuevo gasto en cuotas">
               <FormularioGastoCuotas
                 onSuccess={() => {
                   setToast({ message: 'Gasto en cuotas agregado con éxito', type: 'success' });
+                  setTabActual('cuotas');
                   setVistaActual('dashboard');
                   cargarDatos();
                 }}
