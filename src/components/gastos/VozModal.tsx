@@ -28,11 +28,12 @@ interface VozModalProps {
 const BAR_HEIGHTS = [30, 65, 90, 50, 100, 70, 40, 85, 55, 35, 75, 45];
 
 function parsearTexto(texto: string): ResultadoParseo | null {
-  // Buscar el primer número en el texto (con posibles puntos de miles)
-  const match = texto.match(/\b(\d[\d.]*)\b/);
+  // Buscar el primer número en el texto (con posibles puntos o comas de miles)
+  // El reconocimiento de voz puede devolver "20,000" o "20.000"
+  const match = texto.match(/\b(\d[\d.,]*)\b/);
   if (!match) return null;
 
-  const montoNum = parseInt(match[1].replace(/\./g, ''), 10);
+  const montoNum = parseInt(match[1].replace(/[.,]/g, ''), 10);
   if (isNaN(montoNum) || montoNum <= 0) return null;
 
   const monto = formatNumberInput(montoNum);
