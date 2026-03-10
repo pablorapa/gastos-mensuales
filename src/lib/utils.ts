@@ -52,7 +52,10 @@ export function formatDate(dateString: string, format: 'short' | 'long' | 'month
     return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
   }
 
-  const date = new Date(dateString);
+  // Parsear como fecha local para evitar desfase por UTC
+  // new Date('2026-03-10') interpreta como UTC medianoche → en Argentina retrocede un día
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
   
   if (format === 'long') {
     return date.toLocaleDateString('es-ES', { 
@@ -87,7 +90,10 @@ export function getCurrentMonth(): string {
  */
 export function getCurrentDate(): string {
   const now = new Date();
-  return now.toISOString().split('T')[0];
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /**
