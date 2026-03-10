@@ -11,8 +11,9 @@ import { BalanceCard } from '@/components/gastos/BalanceCard';
 import { ListaGastos } from '@/components/gastos/ListaGastos';
 import { FormularioGastoSimple } from '@/components/gastos/FormularioGastoSimple';
 import { FormularioGastoCuotas } from '@/components/gastos/FormularioGastoCuotas';
+import { VozModal } from '@/components/gastos/VozModal';
 import { GastoSimple, CuotaMensual, BalancesByType } from '@/types';
-import { getCurrentMonth, formatDate } from '@/lib/utils';
+import { getCurrentMonth, formatDate, getCurrentDate } from '@/lib/utils';
 
 /**
  * Dashboard principal de la aplicación
@@ -34,7 +35,10 @@ export default function DashboardPage() {
   const [vistaActual, setVistaActual] = useState<'dashboard' | 'gasto-simple' | 'gasto-cuotas'>('dashboard');
   const [tabActual, setTabActual] = useState<'simples' | 'cuotas'>('simples');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [mostrarVoz, setMostrarVoz] = useState(false);
   const monthInputRef = useRef<HTMLInputElement>(null);
+
+  const personaActual = session?.user?.email?.toLowerCase().includes('pablo') ? 'Pablo' as const : 'Manuel' as const;
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -133,6 +137,33 @@ export default function DashboardPage() {
             onClose={() => setToast(null)}
           />
         )}
+        {mostrarVoz && (
+          <VozModal
+            persona={personaActual}
+            onConfirmar={async (concepto, monto) => {
+              setMostrarVoz(false);
+              try {
+                const response = await fetch('/api/gastos/simple', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    concepto,
+                    monto: parseInt(monto.replace(/\./g, ''), 10),
+                    persona: personaActual,
+                    fecha: getCurrentDate(),
+                  }),
+                });
+                if (!response.ok) throw new Error();
+                setToast({ message: 'Gasto agregado con éxito', type: 'success' });
+                setTabActual('simples');
+                cargarDatos();
+              } catch {
+                setToast({ message: 'Error al guardar el gasto', type: 'error' });
+              }
+            }}
+            onCerrar={() => setMostrarVoz(false)}
+          />
+        )}
         {vistaActual === 'dashboard' ? (
           <div className="space-y-6">
             {/* Selector de mes - Compacto */}
@@ -208,13 +239,25 @@ export default function DashboardPage() {
               <Loading />
             ) : tabActual === 'simples' ? (
               <div className="space-y-6">
-                <Button
-                  variant="primary"
-                  onClick={() => setVistaActual('gasto-simple')}
-                  className="w-full h-14"
-                >
-                  + Agregar gasto común
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="primary"
+                    onClick={() => setVistaActual('gasto-simple')}
+                    className="flex-1 h-14"
+                  >
+                    + Agregar gasto común
+                  </Button>
+                  <button
+                    onClick={() => setMostrarVoz(true)}
+                    title="Cargar por voz"
+                    className="h-14 px-4 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors flex items-center justify-center"
+                  >
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                      <rect x="9" y="2" width="6" height="11" rx="3" />
+                      <path d="M5 10a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 1 1 2 0 7 7 0 0 1-6 6.92V19h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-2.08A7 7 0 0 1 5 10z" />
+                    </svg>
+                  </button>
+                </div>
                 {balances && (
                   <BalanceCard
                     balance={balances.simples}
